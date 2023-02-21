@@ -19,6 +19,9 @@
 		},
 		{
 			"path": "papilloniot-mqttthing-wemos-dht22"
+		},
+		{
+			"path": "papilloniot-mqttthing-wemos-am2320-bmp280"
 		}
 	]
 }
