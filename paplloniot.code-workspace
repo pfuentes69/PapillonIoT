@@ -16,6 +16,9 @@
 		},
 		{
 			"path": "papilloniot-mqttthing-wemos-lightbulb"
+		},
+		{
+			"path": "papilloniot-mqttthing-wemos-dht22"
 		}
 	]
 }
