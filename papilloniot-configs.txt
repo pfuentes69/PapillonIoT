@@ -1,0 +1,5 @@
+papilloniot-mqttthing-button				Button1			192, 168, 2, 25
+papilloniot-mqttthing-wemos-am2320-bmp280	DHTSensor3		dynamic
+papilloniot-mqttthing-wemos-dht22			DHT22Sensor1	dynamic
+papilloniot-mqttthing-esp01dht11			DHTSensor2		192, 168, 2, 26
+papilloniot-mqttthing-wemos-lightbulb		Lamp1			dynamic		

@@ -1,0 +1,145 @@
+{
+    "bridge": {
+        "name": "PapillonIoT",
+        "username": "FA:BA:DA:DA:BA:FA",
+        "port": 51826,
+        "pin": "031-44-157"
+    },
+    "description": "Puente para conexión con dispositivos conectados",
+    "platforms": [
+        {
+            "platform": "config",
+            "name": "Config",
+            "port": 8080,
+            "sudo": true,
+            "log": {
+                "method": "systemd",
+                "service": "homebridge"
+            }
+        },
+        {
+            "name": "Camera ffmpeg",
+            "cameras": [
+                {
+                    "name": "Cámara",
+                    "videoConfig": {
+                        "source": "-re -i http://admin:Papillon1969@192.168.2.181/video.cgi",
+                        "stillImageSource": "-i http://admin:Papillon1969@192.168.2.181/image.jpg",
+                        "maxStreams": 2,
+                        "maxWidth": 640,
+                        "maxHeight": 480,
+                        "maxFPS": 4,
+                        "vcodec": "h264",
+                        "audio": false,
+                        "debug": false
+                    }
+                }
+            ],
+            "platform": "Camera-ffmpeg"
+        }
+    ],
+    "accessories": [
+        {
+            "accessory": "mqttthing",
+            "type": "lightbulb",
+            "name": "Lámpara Salón",
+            "url": "mqtt://raspberrypi.local",
+            "onValue": "ON",
+            "offValue": "OFF",
+            "topics": {
+                "getOn": {
+                    "topic": "PapillonIoT/Lamp1/status",
+                    "apply": "return JSON.parse(message).state"
+                },
+                "setOn": "PapillonIoT/Lamp1/set"
+            }
+        },
+        {
+            "accessory": "mqttthing",
+            "type": "lightbulb",
+            "name": "LED",
+            "url": "mqtt://raspberrypi.local",
+            "onValue": "ON",
+            "offValue": "OFF",
+            "topics": {
+                "getOn": {
+                    "topic": "PapillonIoT/Lamp3/status",
+                    "apply": "return JSON.parse(message).state"
+                },
+                "setOn": "PapillonIoT/Lamp3/set",
+                "setBrightness": "PapillonIoT/Lamp3/setBrightness",
+                "getBrightness": {
+                    "topic": "PapillonIoT/Lamp3/status",
+                    "apply": "return JSON.parse(message).brightness"
+                }
+            }
+        },
+        {
+            "accessory": "mqttthing",
+            "type": "outlet",
+            "name": "Enchufe 1",
+            "url": "mqtt://raspberrypi.local",
+            "onValue": "ON",
+            "offValue": "OFF",
+            "topics": {
+                "getOn": {
+                    "topic": "PapillonIoT/Outlet1/status",
+                    "apply": "return JSON.parse(message).state"
+                },
+                "setOn": "PapillonIoT/Outlet1/set",
+                "getInUse": {
+                    "topic": "PapillonIoT/Outlet1/status",
+                    "apply": "return JSON.parse(message).state"
+                }
+            }
+        },
+        {
+            "accessory": "mqttthing",
+            "type": "temperatureSensor",
+            "name": "Temp Int 2",
+            "url": "mqtt://raspberrypi.local",
+            "topics": {
+                "getCurrentTemperature": {
+                    "topic": "PapillonIoT/DHT22Sensor1/data",
+                    "apply": "return JSON.parse(message).Temperature;"
+                }
+            }
+        },
+        {
+            "accessory": "mqttthing",
+            "type": "temperatureSensor",
+            "name": "Temp Int 1",
+            "url": "mqtt://raspberrypi.local",
+            "topics": {
+                "getCurrentTemperature": {
+                    "topic": "PapillonIoT/DHTSensor2/data",
+                    "apply": "return JSON.parse(message).Temperature;"
+                }
+            }
+        },
+        {
+            "accessory": "mqttthing",
+            "type": "temperatureSensor",
+            "name": "Temp Ext",
+            "url": "mqtt://raspberrypi.local",
+            "topics": {
+                "getCurrentTemperature": {
+                    "topic": "PapillonIoT/DHTSensor3/data",
+                    "apply": "return JSON.parse(message).Temperature;"
+                }
+            }
+        },
+        {
+            "accessory": "mqttthing",
+            "type": "statelessProgrammableSwitch",
+            "name": "Botón",
+            "url": "mqtt://raspberrypi.local",
+            "topics": {
+                "getSwitch": {
+                    "topic": "PapillonIoT/Button1/action",
+                    "apply": "return JSON.parse(message).Action;"
+                }
+            }
+        }
+    ]
+}

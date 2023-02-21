@@ -1,0 +1,21 @@
+{
+	"folders": [
+		{
+			"name": "papilloniot-mqttthing-wemos-ledbar",
+			"path": "papilloniot-mqttthing-wemos-ledbar"
+		},
+		{
+			"path": "papilloniot-mqttthing-esp01-relay"
+		},
+		{
+			"name": "papilloniot-mqttthing-esp01-ledbar",
+			"path": "papilloniot-mqttthing-esp01-ledbar"
+		},
+		{
+			"path": "papilloniot-mqttthing-wemos-button"
+		},
+		{
+			"path": "papilloniot-mqttthing-wemos-lightbulb"
+		}
+	]
+}
