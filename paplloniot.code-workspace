@@ -15,6 +15,9 @@
 			"path": "papilloniot-mqttthing-wemos-button"
 		},
 		{
+			"path": "papilloniot-mqttthing-wemos-presence"
+		},
+		{
 			"path": "papilloniot-mqttthing-wemos-lightbulb"
 		},
 		{
