@@ -3,10 +3,13 @@
 #include <ESP8266WiFi.h>
 #include <PubSubClient.h>
 
+#include <Adafruit_NeoPixel.h>
+
 IPAddress broker(192, 168, 2, 101); // Casa
 
-const int ledPin = D4;
-const int buttonPin = D3;
+#define PIN D3
+#define NUM_LEDS 30
+//const int buttonPin = D3;
 
 const char* ssid     = "Papillon"; //Naviter"; //
 const char* password = "70445312"; //N4v1t3rWIFI2015"; //
@@ -26,10 +29,16 @@ WiFiClient WIFIclient;
 
 PubSubClient client(WIFIclient);
 
-int brilloLampara = 0;
+int32_t colorLampara = 0;
+int8_t levelR = 0;
+int8_t levelG = 0;
+int8_t levelB = 0;
+
 int buttonState;             // the current reading from the input pin
 int lastButtonState = LOW;   // the previous reading from the input pin
 unsigned long lastDebounceTime = 0;  // the last time the output pin was toggled
+
+Adafruit_NeoPixel strip = Adafruit_NeoPixel(NUM_LEDS, PIN, NEO_GRB + NEO_KHZ800);
 
 /////////////////////////////////////
 //
@@ -37,30 +46,30 @@ unsigned long lastDebounceTime = 0;  // the last time the output pin was toggled
 //
 /////////////////////////////////////
 
-void controlLampara (int brillo)
+void controlLampara (int8_t r, int8_t g, int8_t b)
 {
+  int8_t i;
+
   Serial.print("controlLampara(");
-  Serial.print(brillo);
+  Serial.print(r);
+  Serial.println(",");
+  Serial.print(g);
+  Serial.println(",");
+  Serial.print(b);
   Serial.println(")");
-  brilloLampara = brillo;
-  if (brillo > 0) {
-    if (brillo == 100) {
-      Serial.println("Encender Lampara");
-      digitalWrite(ledPin, HIGH);
-    } 
-    else {
-      Serial.print("Ajustar brillo a ");
-      Serial.println(brillo);
-      int brillo1024 = map(brillo, 0, 100, 0, 1023);
-      analogWrite(ledPin, brillo1024);
-    }
-  } 
-  else {
-    Serial.println("Apagar Lampara");
-    digitalWrite(ledPin, LOW);
+  colorLampara = strip.Color(r, g, b);
+  levelR = r;
+  levelG = g;
+  levelB = b;  
+  Serial.print("Ajustar color a ");
+  Serial.println(colorLampara);
+  for (i = 0; i < NUM_LEDS; i++) {
+    strip.setPixelColor(i, colorLampara);
   }
+  strip.show();
 }
 
+/*
 bool controlButton() 
 {
   int reading = digitalRead(buttonPin);
@@ -81,12 +90,16 @@ bool controlButton()
   lastButtonState = reading;
   return false;
 }
+*/
 
 /////////////////////////////////////
 //
 // MQTT FUNCTIONS
 //
 /////////////////////////////////////
+
+
+void notificarBroker();
 
 //print any message received for subscribed topic
 void callback(char* topic, byte* payload, unsigned int length) {
@@ -105,6 +118,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
 
   Serial.println("Command: " + sCommand);
 
+/*
   if (sCommand == "set") {
     Serial.println("ENCENDIDO/APAGADO");
     if (sPayload == "ON") {
@@ -122,6 +136,20 @@ void callback(char* topic, byte* payload, unsigned int length) {
     int valorBrillo = sPayload.toInt();
     controlLampara(valorBrillo);
   }
+*/
+
+  if (sCommand == "setRGB") {
+    String strR, strG, strB;
+    int r, g, b;
+    Serial.println("AJUSTE COLOR");
+    sscanf(sPayload.c_str(), "%d,%d,%d", &r, &g, &b);
+    controlLampara((int8_t)r, (int8_t)g, (int8_t)b);
+  }
+
+  if (sCommand == "getRGB") {
+    notificarBroker();
+  }
+
 }
 
 bool mqttReconnect() {
@@ -155,7 +183,7 @@ bool connectNetwork(bool outDebug = true) {
   int tries = 0;
 
   if (outDebug) Serial.println("Trying Main WiFi");
-  while ((WiFi.status() != WL_CONNECTED) && (tries < 10)) {
+  while ((WiFi.status() != WL_CONNECTED) && (tries < 30)) {
     delay(500);
     if (outDebug) Serial.print(".");
     tries++;
@@ -176,13 +204,17 @@ bool connectNetwork(bool outDebug = true) {
 
 void notificarBroker() {
   String payload = "{\"state\":";
-  if (brilloLampara > 0)
+  if (colorLampara > 0)
     payload += "\"ON\",";
   else
     payload += "\"OFF\",";
-  payload += "\"brightness\":\"";
-  payload += brilloLampara;
-  payload += "\"}";
+  payload += "\"color\":";
+  payload += levelR;
+  payload += ",";
+  payload += levelG;
+  payload += ",";
+  payload += levelB;
+  payload += "}";
 
   Serial.println(payload);
  
@@ -214,14 +246,16 @@ void setup() {
     Serial.println("Network Problem. We will try again in Loop");
   }
 
-  // initialize digital pin LED_BUILTIN as an output.
-  pinMode(ledPin, OUTPUT);
+  // initialize LED strip
+  strip.begin();
+  strip.setBrightness(128);
+  strip.show(); // Initialize all pixels to 'off'
 
   // Set Button
-  pinMode(buttonPin, INPUT_PULLUP);
+//  pinMode(buttonPin, INPUT_PULLUP);
 
   // Estado inicial
-  controlLampara(brilloLampara);
+  controlLampara(0, 0, 0);
   notificarBroker();
   Serial.println("<<<<< SETUP END >>>>>");
 }
@@ -234,7 +268,7 @@ void setup() {
 
 void loop() {
 
-  int brilloInicial = brilloLampara;
+//  int brilloInicial = brilloLampara;
 
   if (connectNetwork(false)) {
     // Serial.println("Loop with Network OK");
@@ -243,6 +277,7 @@ void loop() {
     Serial.println("Loop with Network Problem. We will try again in next Loop");
   }
 
+/*
   // Check button
   if (controlButton()) {
     Serial.println("Button!");
@@ -253,8 +288,8 @@ void loop() {
       brilloLampara = 100;
     controlLampara(brilloLampara);
   }
-  
   if (brilloInicial != brilloLampara)
     notificarBroker();
+*/  
 
 }
